@@ -1,0 +1,127 @@
+ MARS_ROVER: PROCEDURE OPTIONS(MAIN);
+ /********************************************************************
+  * Mars Rover — PL/I
+  *
+  * Tunnel-running game. Rover at bottom, tunnel scrolls down.
+  * A/D to steer, Q to quit.
+  ********************************************************************/
+
+ DECLARE ROWS          FIXED BINARY(31) INIT(25);
+ DECLARE COLS          FIXED BINARY(31) INIT(60);
+ DECLARE TUNNEL_W      FIXED BINARY(31) INIT(14);
+ DECLARE ROVER_ROW     FIXED BINARY(31) INIT(23);
+
+ DECLARE TUNNEL(25)    FIXED BINARY(31);
+ DECLARE ROVER_X       FIXED BINARY(31);
+ DECLARE SCORE         FIXED BINARY(31) INIT(0);
+ DECLARE ALIVE         BIT(1) INIT('1'B);
+
+ DECLARE (R, C)        FIXED BINARY(31);
+ DECLARE LEFT_W        FIXED BINARY(31);
+ DECLARE RIGHT_W       FIXED BINARY(31);
+ DECLARE DRIFT         FIXED BINARY(31);
+ DECLARE NEW_LEFT      FIXED BINARY(31);
+ DECLARE RAND_VAL      FLOAT BINARY;
+ DECLARE LINE_BUF      CHARACTER(62);
+ DECLARE BORDER_LINE   CHARACTER(62);
+ DECLARE I             FIXED BINARY(31);
+ DECLARE KEY_CHAR      CHARACTER(1);
+
+ /* Build border */
+ BORDER_LINE = '+';
+ DO I = 1 TO COLS;
+     SUBSTR(BORDER_LINE, I + 1, 1) = '-';
+ END;
+ SUBSTR(BORDER_LINE, COLS + 2, 1) = '+';
+
+ /* Init tunnel centred */
+ LEFT_W = (COLS - TUNNEL_W) / 2;
+ ROVER_X = COLS / 2;
+
+ DO R = 1 TO ROWS;
+     TUNNEL(R) = LEFT_W;
+     RAND_VAL = RANDOM();
+     DRIFT = MOD(TRUNC(RAND_VAL * 100), 3) - 1;
+     LEFT_W = LEFT_W + DRIFT;
+     IF LEFT_W < 1 THEN LEFT_W = 1;
+     IF LEFT_W > COLS - TUNNEL_W - 1 THEN
+         LEFT_W = COLS - TUNNEL_W - 1;
+ END;
+
+ /* Main loop */
+ DO WHILE(ALIVE);
+     /* Read keyboard — GET EDIT with timeout not standard;
+        user presses a key per frame */
+     ON ENDFILE(SYSIN) KEY_CHAR = ' ';
+     GET EDIT(KEY_CHAR) (A(1));
+
+     SELECT(KEY_CHAR);
+         WHEN('a', 'A')
+             IF ROVER_X > 1 THEN ROVER_X = ROVER_X - 1;
+         WHEN('d', 'D')
+             IF ROVER_X < COLS THEN ROVER_X = ROVER_X + 1;
+         WHEN('q', 'Q')
+             ALIVE = '0'B;
+         OTHERWISE;
+     END;
+
+     /* Scroll tunnel */
+     DO R = 1 TO ROWS - 1;
+         TUNNEL(R) = TUNNEL(R + 1);
+     END;
+
+     /* New bottom row */
+     RAND_VAL = RANDOM();
+     DRIFT = MOD(TRUNC(RAND_VAL * 100), 5) - 2;
+     NEW_LEFT = TUNNEL(ROWS - 1) + DRIFT;
+     IF NEW_LEFT < 1 THEN NEW_LEFT = 1;
+     IF NEW_LEFT > COLS - TUNNEL_W - 1 THEN
+         NEW_LEFT = COLS - TUNNEL_W - 1;
+     TUNNEL(ROWS) = NEW_LEFT;
+
+     SCORE = SCORE + 1;
+
+     /* Collision check */
+     LEFT_W = TUNNEL(ROVER_ROW);
+     RIGHT_W = LEFT_W + TUNNEL_W;
+     IF ROVER_X <= LEFT_W | ROVER_X >= RIGHT_W THEN
+         ALIVE = '0'B;
+
+     /* Clear screen (ANSI) */
+     PUT EDIT(BYTE(27), '[2J', BYTE(27), '[H')
+         (A(1), A(3), A(1), A(2));
+
+     /* Status */
+     PUT SKIP LIST('  MARS ROVER  |  Score:', SCORE);
+
+     /* Top border */
+     PUT SKIP EDIT(BORDER_LINE) (A(COLS + 2));
+
+     /* Grid */
+     DO R = 1 TO ROWS;
+         LINE_BUF = ' ';
+         SUBSTR(LINE_BUF, 1, 1) = '|';
+         LEFT_W = TUNNEL(R);
+         RIGHT_W = LEFT_W + TUNNEL_W;
+         DO C = 1 TO COLS;
+             IF R = ROVER_ROW & C = ROVER_X THEN
+                 SUBSTR(LINE_BUF, C + 1, 1) = 'A';
+             ELSE IF C <= LEFT_W | C >= RIGHT_W THEN
+                 SUBSTR(LINE_BUF, C + 1, 1) = '#';
+             ELSE
+                 SUBSTR(LINE_BUF, C + 1, 1) = ' ';
+         END;
+         SUBSTR(LINE_BUF, COLS + 2, 1) = '|';
+         PUT SKIP EDIT(LINE_BUF) (A(COLS + 2));
+     END;
+
+     /* Bottom border */
+     PUT SKIP EDIT(BORDER_LINE) (A(COLS + 2));
+     PUT SKIP LIST('  A/D to steer  |  Q to quit');
+ END;
+
+ PUT SKIP LIST(' ');
+ PUT SKIP LIST('  GAME OVER!  Final Score:', SCORE);
+ PUT SKIP LIST(' ');
+
+ END MARS_ROVER;

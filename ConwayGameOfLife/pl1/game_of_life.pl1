@@ -1,0 +1,120 @@
+ GAME_OF_LIFE: PROCEDURE OPTIONS(MAIN);
+ /********************************************************************
+  * Conway's Game of Life — PL/I
+  *
+  * Grid:  60 x 30 (toroidal — edges wrap)
+  * Alive = '#'   Dead = ' '
+  * Press Ctrl+C to quit.
+  ********************************************************************/
+
+ DECLARE ROWS          FIXED BINARY(31) INIT(30);
+ DECLARE COLS          FIXED BINARY(31) INIT(60);
+
+ DECLARE GRID(30,60)   FIXED BINARY(31);
+ DECLARE NEXT(30,60)   FIXED BINARY(31);
+
+ DECLARE (R, C)        FIXED BINARY(31);
+ DECLARE (DR, DC)      FIXED BINARY(31);
+ DECLARE (NR, NC)      FIXED BINARY(31);
+ DECLARE NEIGHBOURS    FIXED BINARY(31);
+ DECLARE GENERATION    FIXED BINARY(31) INIT(0);
+ DECLARE ALIVE         FIXED BINARY(31);
+ DECLARE RAND_VAL      FLOAT BINARY;
+ DECLARE LINE_BUF      CHARACTER(62);
+ DECLARE BORDER_LINE   CHARACTER(62);
+ DECLARE I             FIXED BINARY(31);
+
+ /* Build border string: +----...----+ */
+ BORDER_LINE = '+';
+ DO I = 1 TO COLS;
+     SUBSTR(BORDER_LINE, I + 1, 1) = '-';
+ END;
+ SUBSTR(BORDER_LINE, COLS + 2, 1) = '+';
+
+ /* Seed the grid randomly (~30% density) */
+ DO R = 1 TO ROWS;
+     DO C = 1 TO COLS;
+         RAND_VAL = RANDOM();
+         IF RAND_VAL < 0.30 THEN
+             GRID(R, C) = 1;
+         ELSE
+             GRID(R, C) = 0;
+     END;
+ END;
+
+ /* Main loop */
+ DO WHILE('1'B);
+     /* Count alive cells */
+     ALIVE = 0;
+     DO R = 1 TO ROWS;
+         DO C = 1 TO COLS;
+             ALIVE = ALIVE + GRID(R, C);
+         END;
+     END;
+
+     /* Clear screen (ANSI escape) */
+     PUT EDIT(BYTE(27), '[2J', BYTE(27), '[H')
+         (A(1), A(3), A(1), A(2));
+
+     /* Status line */
+     PUT SKIP LIST('Generation', GENERATION, ' |  Alive:', ALIVE);
+
+     /* Top border */
+     PUT SKIP EDIT(BORDER_LINE) (A(COLS + 2));
+
+     /* Display grid */
+     DO R = 1 TO ROWS;
+         LINE_BUF = ' ';
+         SUBSTR(LINE_BUF, 1, 1) = '|';
+         DO C = 1 TO COLS;
+             IF GRID(R, C) = 1 THEN
+                 SUBSTR(LINE_BUF, C + 1, 1) = '#';
+             ELSE
+                 SUBSTR(LINE_BUF, C + 1, 1) = ' ';
+         END;
+         SUBSTR(LINE_BUF, COLS + 2, 1) = '|';
+         PUT SKIP EDIT(LINE_BUF) (A(COLS + 2));
+     END;
+
+     /* Bottom border */
+     PUT SKIP EDIT(BORDER_LINE) (A(COLS + 2));
+     PUT SKIP LIST('Press Ctrl+C to quit.');
+
+     /* Compute next generation */
+     DO R = 1 TO ROWS;
+         DO C = 1 TO COLS;
+             NEIGHBOURS = 0;
+             DO DR = -1 TO 1;
+                 DO DC = -1 TO 1;
+                     IF DR = 0 & DC = 0 THEN
+                         ; /* skip self */
+                     ELSE DO;
+                         NR = MOD(R + DR - 1 + ROWS, ROWS) + 1;
+                         NC = MOD(C + DC - 1 + COLS, COLS) + 1;
+                         NEIGHBOURS = NEIGHBOURS + GRID(NR, NC);
+                     END;
+                 END;
+             END;
+
+             /* Apply rules */
+             IF GRID(R, C) = 1 THEN DO;
+                 IF NEIGHBOURS = 2 | NEIGHBOURS = 3 THEN
+                     NEXT(R, C) = 1;
+                 ELSE
+                     NEXT(R, C) = 0;
+             END;
+             ELSE DO;
+                 IF NEIGHBOURS = 3 THEN
+                     NEXT(R, C) = 1;
+                 ELSE
+                     NEXT(R, C) = 0;
+             END;
+         END;
+     END;
+
+     /* Copy next to current */
+     GRID = NEXT;
+     GENERATION = GENERATION + 1;
+ END;
+
+ END GAME_OF_LIFE;

@@ -78,12 +78,12 @@ def main():
             elif key == "d" or key == "D":
                 rover_x = min(cols - 1, rover_x + 1)
 
-            # ── Scroll tunnel ─────────────────────────────────────
-            tunnel.pop(0)
+            # ── Scroll tunnel (new row at top, scrolls toward rover) ──
+            tunnel.pop()
             drift = random.choice([-1, -1, 0, 0, 0, 1, 1])
-            left = tunnel[-1] + drift
+            left = tunnel[0] + drift
             left = max(1, min(cols - tunnel_w - 1, left))
-            tunnel.append(left)
+            tunnel.insert(0, left)
 
             # ── Collision check ───────────────────────────────────
             rover_row = rows - 2  # rover is on second-to-last row

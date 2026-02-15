@@ -52,12 +52,13 @@ static void init_tunnel(void)
 
 static void scroll_tunnel(void)
 {
-    memmove(tunnel, tunnel + 1, (HEIGHT - 1) * sizeof(int));
+    /* Shift rows down; new row appears at top */
+    memmove(tunnel + 1, tunnel, (HEIGHT - 1) * sizeof(int));
     int drift = (rand() % 5) - 2; /* -2..+2 */
-    int left = tunnel[HEIGHT - 2] + drift;
+    int left = tunnel[1] + drift;
     if (left < 1) left = 1;
     if (left > WIDTH - TUNNEL_W - 1) left = WIDTH - TUNNEL_W - 1;
-    tunnel[HEIGHT - 1] = left;
+    tunnel[0] = left;
 }
 
 static void render(int rover_x, int score, int rover_row)

@@ -32,11 +32,12 @@ public class MarsRover {
     }
 
     private void scrollTunnel() {
-        System.arraycopy(tunnel, 1, tunnel, 0, HEIGHT - 1);
+        /* Shift rows down; new row appears at top */
+        System.arraycopy(tunnel, 0, tunnel, 1, HEIGHT - 1);
         int drift = rng.nextInt(5) - 2;
-        int left = tunnel[HEIGHT - 2] + drift;
+        int left = tunnel[1] + drift;
         left = Math.max(1, Math.min(WIDTH - TUNNEL_W - 1, left));
-        tunnel[HEIGHT - 1] = left;
+        tunnel[0] = left;
     }
 
     private void render() {

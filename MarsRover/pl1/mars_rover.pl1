@@ -65,19 +65,19 @@
          OTHERWISE;
      END;
 
-     /* Scroll tunnel */
-     DO R = 1 TO ROWS - 1;
-         TUNNEL(R) = TUNNEL(R + 1);
+     /* Scroll tunnel (shift down, new row at top) */
+     DO R = ROWS TO 2 BY -1;
+         TUNNEL(R) = TUNNEL(R - 1);
      END;
 
-     /* New bottom row */
+     /* New top row */
      RAND_VAL = RANDOM();
      DRIFT = MOD(TRUNC(RAND_VAL * 100), 5) - 2;
-     NEW_LEFT = TUNNEL(ROWS - 1) + DRIFT;
+     NEW_LEFT = TUNNEL(2) + DRIFT;
      IF NEW_LEFT < 1 THEN NEW_LEFT = 1;
      IF NEW_LEFT > COLS - TUNNEL_W - 1 THEN
          NEW_LEFT = COLS - TUNNEL_W - 1;
-     TUNNEL(ROWS) = NEW_LEFT;
+     TUNNEL(1) = NEW_LEFT;
 
      SCORE = SCORE + 1;
 

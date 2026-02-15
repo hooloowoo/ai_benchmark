@@ -118,18 +118,18 @@
                    MOVE 0 TO WS-ALIVE
            END-EVALUATE
 
-      *>   Scroll tunnel
-           PERFORM VARYING WS-R FROM 1 BY 1
-               UNTIL WS-R >= WS-HEIGHT
-               MOVE WS-TLEFT(WS-R + 1) TO WS-TLEFT(WS-R)
+      *>   Scroll tunnel (shift down, new row at top)
+           PERFORM VARYING WS-R FROM WS-HEIGHT BY -1
+               UNTIL WS-R <= 1
+               MOVE WS-TLEFT(WS-R - 1) TO WS-TLEFT(WS-R)
            END-PERFORM
 
-      *>   New bottom row
+      *>   New top row
            MOVE FUNCTION RANDOM TO WS-RAND
            COMPUTE WS-DRIFT =
                FUNCTION INTEGER(WS-RAND * 5) - 2
            COMPUTE WS-NEW-LEFT =
-               WS-TLEFT(WS-HEIGHT - 1) + WS-DRIFT
+               WS-TLEFT(2) + WS-DRIFT
            IF WS-NEW-LEFT < 1
                MOVE 1 TO WS-NEW-LEFT
            END-IF
@@ -137,7 +137,7 @@
                COMPUTE WS-NEW-LEFT =
                    WS-WIDTH - WS-TUNNEL-W - 1
            END-IF
-           MOVE WS-NEW-LEFT TO WS-TLEFT(WS-HEIGHT)
+           MOVE WS-NEW-LEFT TO WS-TLEFT(1)
 
       *>   Collision check
            MOVE WS-TLEFT(WS-ROVER-ROW) TO WS-LEFT

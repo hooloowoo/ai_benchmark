@@ -90,11 +90,29 @@ start:
                 lda #$80
                 sta $D412
 
+                ; Let SID noise warm up (read & discard)
+                ldx #0
+.sid_warmup:
+                lda $D41B
+                inx
+                bne .sid_warmup
+
                 ; Init tunnel
                 jsr init_tunnel
 
+                ; Place rover at centre of tunnel on its row
+                ldx #ROVER_ROW
+                lda TUNNEL,x
+                clc
+                adc #(TUNNEL_W / 2)
+                sta ZP_ROVER_X
+
                 ; Set colour RAM to white
                 jsr set_colours
+
+                ; Render first frame before main loop
+                jsr render_screen
+                jsr display_status
 
                 cli
 
@@ -161,16 +179,16 @@ init_tunnel:
 ; ============================================================================
 !zone scroll_tunnel
 scroll_tunnel:
-                ldx #0
+                ; Shift all rows DOWN by 1 (new content appears at top)
+                ldx #(SCREEN_H - 1)
 .shift:
-                lda TUNNEL+1,x
+                lda TUNNEL-1,x
                 sta TUNNEL,x
-                inx
-                cpx #(SCREEN_H - 1)
+                dex
                 bne .shift
 
-                ; Generate new bottom row
-                lda TUNNEL+(SCREEN_H - 2)
+                ; Generate new top row based on row 1 (the old top)
+                lda TUNNEL+1
                 pha
                 jsr get_random_drift
                 pla
@@ -184,7 +202,7 @@ scroll_tunnel:
                 bcc .not_high
                 lda #(SCREEN_W - TUNNEL_W - 1)
 .not_high:
-                sta TUNNEL+(SCREEN_H - 1)
+                sta TUNNEL
                 rts
 
 ; ============================================================================

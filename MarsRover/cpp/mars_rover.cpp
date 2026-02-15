@@ -80,11 +80,11 @@ int main() {
         }
         if (!alive) break;
 
-        // Scroll
-        tunnel.erase(tunnel.begin());
-        left = tunnel.back() + drift_dist2(rng);
+        // Scroll (new row at top, scrolls toward rover)
+        tunnel.pop_back();
+        left = tunnel.front() + drift_dist2(rng);
         left = std::max(1, std::min(WIDTH - TUNNEL_W - 1, left));
-        tunnel.push_back(left);
+        tunnel.insert(tunnel.begin(), left);
         ++score;
 
         // Collision

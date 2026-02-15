@@ -43,11 +43,12 @@ process.stdin.on('data', (key) => {
 });
 
 function scrollTunnel() {
-    tunnel.shift();
+    // New row at top, scrolls toward rover
+    tunnel.pop();
     let drift = Math.floor(Math.random() * 5) - 2;
-    let nl = tunnel[tunnel.length - 1] + drift;
+    let nl = tunnel[0] + drift;
     nl = Math.max(1, Math.min(WIDTH - TUNNEL_W - 1, nl));
-    tunnel.push(nl);
+    tunnel.unshift(nl);
 }
 
 function render() {

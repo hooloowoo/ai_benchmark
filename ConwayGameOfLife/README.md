@@ -25,6 +25,7 @@ All implementations use a toroidal grid (edges wrap around) and start from a ran
 | [COBOL](cobol/) | `cobol/` | 60×30 | GnuCOBOL, free format |
 | [C64 Assembly](c64/) | `c64/` | 40×24 | 6502/6510 ASM (ACME), runs on VICE or real hardware |
 | [PL/I](pl1/) | `pl1/` | 60×30 | Standard PL/I (no free compiler widely available) |
+| [Prolog](prolog/) | `prolog/` | 60×30 | SWI-Prolog, toroidal grid with findall-based generation |
 
 ## Quick Start
 

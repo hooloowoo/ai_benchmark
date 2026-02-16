@@ -18,6 +18,7 @@ You pilot a Mars rover speeding through a narrow, winding tunnel carved into the
 | [COBOL](cobol/) | `cobol/` | 60×25 | GnuCOBOL, ACCEPT WITH TIMEOUT |
 | [C64 Assembly](c64/) | `c64/` | 40×25 | 6502/6510 ASM (ACME), joystick + keyboard |
 | [PL/I](pl1/) | `pl1/` | 60×25 | Standard PL/I (no free compiler widely available) |
+| [Prolog](prolog/) | `prolog/` | 60×25 | SWI-Prolog, non-blocking input via stty raw mode |
 
 ## Quick Start
 
